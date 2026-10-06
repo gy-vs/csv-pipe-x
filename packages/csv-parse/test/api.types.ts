@@ -380,6 +380,12 @@ describe("API Types", function () {
       const options: Options = {};
       options.trim = true;
     });
+
+    it("unescape_formulas", function () {
+      const options: Options = {};
+      options.unescape_formulas = true;
+      options.unescapeFormulas = true;
+    });
   });
 
   describe("InfoField", function () {

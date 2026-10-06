@@ -2446,6 +2446,41 @@ var csv_stringify_sync = (function (exports) {
               );
             };
 
+            // First characters interpreted by spreadsheets as the start of a formula,
+            // including the full width equivalents. Fields starting with one of these
+            // are prefixed with `'` when `escape_formulas` is active.
+            const formula_chars = new Set([
+              "=",
+              "+",
+              "-",
+              "@",
+              "\t",
+              "\r",
+              "\uFF1D", // Unicode '='
+              "\uFF0B", // Unicode '+'
+              "\uFF0D", // Unicode '-'
+              "\uFF20", // Unicode '@'
+            ]);
+            // Encode a field value when `escape_formulas` is active.
+            //
+            // Escape format, reversible with parse `unescape_formulas`:
+            // - A value starting with a formula trigger char (`=`, `+`, `-`, `@`, `\t`,
+            //   `\r`, or one of the full width equivalents listed in `formula_chars`)
+            //   is prefixed with `'`. Excel displays the field as text and never
+            //   evaluates it.
+            // - A value already starting with `'` would otherwise be indistinguishable
+            //   from an escaped value, so its leading `'` is doubled (`'x` -> `''x`).
+            // - Other values are emitted untouched.
+            //
+            // Decoding rule: a value starting with `'` loses its first char when the
+            // second char is `'` or a formula trigger char.
+            const escape_formula = function (value) {
+              if (formula_chars.has(value[0]) || value[0] === "'") {
+                return `'${value}`;
+              }
+              return value;
+            };
+
             const stringifier = function (options, state, info) {
               return {
                 options: options,
@@ -2632,27 +2667,14 @@ var csv_stringify_sync = (function (exports) {
                       );
                       const quotedString = quoted_string && typeof field === "string";
                       const quotedMatch = matches_quoted_match(value, quoted_match);
-                      // See 
+                      // See
                       // More about CSV injection or formula injection, when websites embed
                       // untrusted input inside CSV files:
                       // https://owasp.org/www-community/attacks/CSV_Injection
                       // http://georgemauer.net/2017/10/07/csv-injection.html
                       // Apple Numbers unicode normalization is empirical from testing
                       if (escape_formulas) {
-                        switch (value[0]) {
-                          case "=":
-                          case "+":
-                          case "-":
-                          case "@":
-                          case "\t":
-                          case "\r":
-                          case "\uFF1D": // Unicode '='
-                          case "\uFF0B": // Unicode '+'
-                          case "\uFF0D": // Unicode '-'
-                          case "\uFF20": // Unicode '@'
-                            value = `'${value}`;
-                            break;
-                        }
+                        value = escape_formula(value);
                       }
                       const shouldQuote =
                         containsQuote === true ||

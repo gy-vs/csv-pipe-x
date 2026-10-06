@@ -718,6 +718,20 @@ const normalize_options = function (opts) {
   } else if (options.rtrim !== true) {
     options.rtrim = false;
   }
+  // Normalize option `unescape_formulas`
+  // Only validated here; the normalized flag is stored in the parser state so
+  // `options` stays free of additional keys.
+  if (
+    options.unescape_formulas === undefined ||
+    options.unescape_formulas === null ||
+    options.unescape_formulas === false
+  ) {
+    delete options.unescape_formulas;
+  } else if (options.unescape_formulas !== true) {
+    throw new Error(
+      `Invalid Option: unescape_formulas must be a boolean, got ${JSON.stringify(options.unescape_formulas)}`,
+    );
+  }
   // Normalize option `to`
   if (options.to === undefined || options.to === null) {
     options.to = -1;

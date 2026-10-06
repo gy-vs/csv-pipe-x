@@ -473,6 +473,16 @@ export interface Options<T = string[], U = T> {
    * Does not remove whitespace in a quoted field.
    */
   trim?: OptionsNormalized["trim"] | null;
+  /**
+   * If true, reverse the encoding applied by csv-stringify when its
+   * `escape_formulas` option is active: a field beginning with `'` has its
+   * first character removed when the second character is another `'` or a
+   * formula trigger character (`=`, `+`, `-`, `@`, `\t`, `\r`, or one of
+   * the full width equivalents `＝`, `＋`, `－`, `＠`); other fields are
+   * left untouched. The conversion happens before `cast`.
+   */
+  unescape_formulas?: boolean;
+  unescapeFormulas?: boolean;
 }
 
 export type CsvErrorCode =

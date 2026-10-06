@@ -3,6 +3,7 @@ import { init_state } from "./init_state.js";
 import { normalize_options } from "./normalize_options.js";
 import { CsvError } from "./CsvError.js";
 import { delimiter_discover } from "../utils/delimiter_discover.js";
+import { unescape_formula } from "../utils/unescape_formula.js";
 
 const isRecordEmpty = function (record) {
   return record.every(
@@ -719,6 +720,11 @@ const transform = function (original_options = {}) {
       let field = this.state.field.toString(encoding);
       if (rtrim === true && wasQuoting === false) {
         field = field.trimRight();
+      }
+      // Reverse the `escape_formulas` encoding of csv-stringify before the
+      // value is converted by `cast`.
+      if (this.state.unescapeFormulas === true) {
+        field = unescape_formula(field);
       }
       if (cast === true) {
         const [err, f] = this.__cast(field);

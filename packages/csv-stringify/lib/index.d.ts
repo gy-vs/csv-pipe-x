@@ -119,7 +119,17 @@ export interface OptionsNormalized extends stream.TransformOptions {
    */
   record_delimiter: RecordDelimiter;
   /**
-   * Boolean, default to false, if true, fields that begin with `=`, `+`, `-`, `@`, `\t`, or `\r` will be prepended with a `'` to protect against csv injection attacks
+   * Boolean, default to false, protect against CSV formula injection.
+   *
+   * Fields beginning with `=`, `+`, `-`, `@`, `\t`, `\r`, or with one of
+   * their full width equivalents (`＝`, `＋`, `－`, `＠`), are prepended
+   * with a single quote `'` so spreadsheet applications display them as text
+   * instead of evaluating them as formulas.
+   *
+   * Fields already beginning with `'` are encoded by doubling their leading
+   * quote (eg `'x` is written as `''x`) so the escape stays unambiguous:
+   * every emitted field decodes back to exactly one original value. Use the
+   * `unescape_formulas` option of `csv-parse` to reverse the encoding.
    */
   escape_formulas: boolean;
 }
@@ -201,7 +211,17 @@ export interface Options extends stream.TransformOptions {
    */
   record_delimiter?: RecordDelimiter;
   /**
-   * Boolean, default to false, if true, fields that begin with `=`, `+`, `-`, `@`, `\t`, or `\r` will be prepended with a `'` to protect against csv injection attacks
+   * Boolean, default to false, protect against CSV formula injection.
+   *
+   * Fields beginning with `=`, `+`, `-`, `@`, `\t`, `\r`, or with one of
+   * their full width equivalents (`＝`, `＋`, `－`, `＠`), are prepended
+   * with a single quote `'` so spreadsheet applications display them as text
+   * instead of evaluating them as formulas.
+   *
+   * Fields already beginning with `'` are encoded by doubling their leading
+   * quote (eg `'x` is written as `''x`) so the escape stays unambiguous:
+   * every emitted field decodes back to exactly one original value. Use the
+   * `unescape_formulas` option of `csv-parse` to reverse the encoding.
    */
   escape_formulas?: boolean;
 }

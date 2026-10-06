@@ -1,6 +1,7 @@
 import "should";
 import dedent from "dedent";
 import { stringify } from "../lib/index.js";
+import { parse } from "../../csv-parse/lib/sync.js";
 
 describe("Option `escape_formulas`", function () {
   it("default to `false`", function (next) {
@@ -70,6 +71,59 @@ describe("Option `escape_formulas`", function () {
           "'=a","1"
           "b","2"
         `);
+        next();
+      },
+    );
+  });
+
+  it("prefixes a single quote to fields already starting with a quote", function (next) {
+    stringify(
+      [
+        ["=SUM(A1)", "'=already"],
+        ["'single-quote", "'"],
+        ["''two-quotes", "plain"],
+      ],
+      {
+        escape_formulas: true,
+        eof: false,
+      },
+      (err, data) => {
+        if (err) return next(err);
+        data.should.eql(
+          [
+            "'=SUM(A1),''=already",
+            "''single-quote,''",
+            "'''two-quotes,plain",
+          ].join("\n"),
+        );
+        next();
+      },
+    );
+  });
+
+  it("round-trips arbitrary string values", function (next) {
+    const input = [
+      ["=SUM(A1)", "'=already", "it's", "@user", "plain"],
+      ["'", "", '"quoted,value', "＝x", "carriage-\r-return"],
+      ["\tstart", "-minus", "+plus", "＠wide", "line\nbreak"],
+    ];
+    stringify(input, { escape_formulas: true, eof: false }, (err, data) => {
+      if (err) return next(err);
+      parse(data, {
+        unescape_formulas: true,
+        record_delimiter: "\n",
+      }).should.eql(input);
+      next();
+    });
+  });
+
+  it("does not escape when disabled", function (next) {
+    stringify(
+      [["=a", "'b", "c"]],
+      { escape_formulas: false, eof: false },
+      (err, data) => {
+        if (err) return next(err);
+        data.should.eql("=a,'b,c");
         next();
       },
     );

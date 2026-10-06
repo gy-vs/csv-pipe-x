@@ -96,6 +96,8 @@ const init_state = function (options) {
     record: [],
     recordHasError: false,
     record_length: 0,
+    // Reverse the `escape_formulas` encoding of csv-stringify
+    unescapeFormulas: options.unescape_formulas === true,
     recordDelimiterMaxLength:
       options.record_delimiter.length === 0
         ? 0
