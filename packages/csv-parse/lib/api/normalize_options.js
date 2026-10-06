@@ -756,6 +756,24 @@ const normalize_options = function (opts) {
       );
     }
   }
+  // Normalize option `unescape_formulas`
+  if (
+    options.unescape_formulas === undefined ||
+    options.unescape_formulas === null ||
+    options.unescape_formulas === false
+  ) {
+    options.unescape_formulas = false;
+  } else if (options.unescape_formulas !== true) {
+    throw new CsvError(
+      "CSV_INVALID_OPTION_UNESCAPE_FORMULAS",
+      [
+        "Invalid option unescape_formulas:",
+        "unescape_formulas must be a boolean,",
+        `got ${JSON.stringify(options.unescape_formulas)}`,
+      ],
+      options,
+    );
+  }
   return options;
 };
 

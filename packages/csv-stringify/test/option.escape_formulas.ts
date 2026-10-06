@@ -1,5 +1,9 @@
 import "should";
 import dedent from "dedent";
+// Import the source of csv-parse directly: inside the monorepo, the
+// `csv-parse` package name resolves to the published `dist` build while the
+// round trip must exercise the current code.
+import { parse } from "../../csv-parse/lib/sync.js";
 import { stringify } from "../lib/index.js";
 
 describe("Option `escape_formulas`", function () {
@@ -73,5 +77,62 @@ describe("Option `escape_formulas`", function () {
         next();
       },
     );
+  });
+
+  it("escape values which already look escaped", function (next) {
+    stringify(
+      [
+        ["'=a", 1],
+        ["''=b", 2],
+        ["'", 3],
+        ["''", 4],
+        ["'c", 5],
+        ["it's", 6],
+      ],
+      {
+        escape_formulas: true,
+        eof: false,
+      },
+      (err, data) => {
+        if (err) return next(err);
+        data.should.eql(
+          ["''=a,1", "'''=b,2", "',3", "'',4", "'c,5", "it's,6"].join("\n"),
+        );
+        next();
+      },
+    );
+  });
+
+  describe("round trip with csv-parse `unescape_formulas`", function () {
+    it("restore the original values", function (next) {
+      const records = [
+        ["=SUM(A1)", "'=already", "it's", "@user", "plain"],
+        ["'", "", '="a,b"', 'he said "hi"', "＝sum"],
+        ["''", "'''+", "-1", "+x", "\ty"],
+      ];
+      stringify(records, { escape_formulas: true }, (err, data) => {
+        if (err) return next(err);
+        parse(data, { unescape_formulas: true }).should.eql(records);
+        next();
+      });
+    });
+
+    it("with `header` and `columns`", function (next) {
+      const records = [
+        { "=col1": "'=v1", plain: "=v2" },
+        { "=col1": "@v3", plain: "v4" },
+      ];
+      stringify(
+        records,
+        { escape_formulas: true, header: true },
+        (err, data) => {
+          if (err) return next(err);
+          parse(data, { unescape_formulas: true, columns: true }).should.eql(
+            records,
+          );
+          next();
+        },
+      );
+    });
   });
 });

@@ -266,6 +266,15 @@ export interface OptionsNormalized<T = string[], U = T> {
    * Does not remove whitespace in a quoted field.
    */
   trim: boolean;
+  /**
+   * Boolean, default to false. Revert the escaping applied by the
+   * `escape_formulas` option of csv-stringify: a field made of one or more
+   * `'` followed by `=`, `+`, `-`, `@`, `\t`, `\r` or their full-width
+   * unicode forms `＝`, `＋`, `－` and `＠` has its leading `'` removed;
+   * every other field is left untouched. Fields are unescaped before the
+   * `cast` function is called.
+   */
+  unescape_formulas: boolean;
 }
 
 /*
@@ -473,6 +482,15 @@ export interface Options<T = string[], U = T> {
    * Does not remove whitespace in a quoted field.
    */
   trim?: OptionsNormalized["trim"] | null;
+  /**
+   * Boolean, default to false. Revert the escaping applied by the
+   * `escape_formulas` option of csv-stringify: a field made of one or more
+   * `'` followed by `=`, `+`, `-`, `@`, `\t`, `\r` or their full-width
+   * unicode forms `＝`, `＋`, `－` and `＠` has its leading `'` removed;
+   * every other field is left untouched. Fields are unescaped before the
+   * `cast` function is called.
+   */
+  unescape_formulas?: OptionsNormalized["unescape_formulas"] | null;
 }
 
 export type CsvErrorCode =
@@ -488,6 +506,7 @@ export type CsvErrorCode =
   | "CSV_INVALID_OPTION_DELIMITER"
   | "CSV_INVALID_OPTION_GROUP_COLUMNS_BY_NAME"
   | "CSV_INVALID_OPTION_ON_RECORD"
+  | "CSV_INVALID_OPTION_UNESCAPE_FORMULAS"
   | "CSV_MAX_RECORD_SIZE"
   | "CSV_NON_TRIMABLE_CHAR_AFTER_CLOSING_QUOTE"
   | "CSV_OPTION_COLUMNS_MISSING_NAME"

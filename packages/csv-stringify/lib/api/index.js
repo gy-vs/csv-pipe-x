@@ -220,14 +220,21 @@ const stringifier = function (options, state, info) {
           );
           const quotedString = quoted_string && typeof field === "string";
           const quotedMatch = matches_quoted_match(value, quoted_match);
-          // See 
+          // See
           // More about CSV injection or formula injection, when websites embed
           // untrusted input inside CSV files:
           // https://owasp.org/www-community/attacks/CSV_Injection
           // http://georgemauer.net/2017/10/07/csv-injection.html
           // Apple Numbers unicode normalization is empirical from testing
           if (escape_formulas) {
-            switch (value[0]) {
+            // Leading quotes are skipped, so a value which already looks like
+            // an escaped formula, eg `'=1`, is escaped again, eg `''=1`: the
+            // output is unambiguous and the `unescape_formulas` option of
+            // csv-parse restores the original value by removing exactly one
+            // leading quote.
+            let i = 0;
+            while (value[i] === "'") i++;
+            switch (value[i]) {
               case "=":
               case "+":
               case "-":

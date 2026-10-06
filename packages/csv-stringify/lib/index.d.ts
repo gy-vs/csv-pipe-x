@@ -119,7 +119,18 @@ export interface OptionsNormalized extends stream.TransformOptions {
    */
   record_delimiter: RecordDelimiter;
   /**
-   * Boolean, default to false, if true, fields that begin with `=`, `+`, `-`, `@`, `\t`, or `\r` will be prepended with a `'` to protect against csv injection attacks
+   * Boolean, default to false. If true, fields that begin with `=`, `+`, `-`,
+   * `@`, `\t` or `\r`, as well as their full-width unicode forms `＝`, `＋`,
+   * `－` and `＠`, are prepended with a `'` to protect against CSV injection
+   * attacks: spreadsheet applications display the value as text instead of
+   * executing it as a formula.
+   *
+   * The written format is unambiguous: any value made of zero or more `'`
+   * followed by one of the characters above is prepended with one additional
+   * `'`. For example, `=1` is written as `'=1` while `'=1` is written as
+   * `''=1`. The `unescape_formulas` option of csv-parse restores the original
+   * value by removing exactly one leading `'` from fields made of one or more
+   * `'` followed by one of the characters above.
    */
   escape_formulas: boolean;
 }
@@ -201,7 +212,18 @@ export interface Options extends stream.TransformOptions {
    */
   record_delimiter?: RecordDelimiter;
   /**
-   * Boolean, default to false, if true, fields that begin with `=`, `+`, `-`, `@`, `\t`, or `\r` will be prepended with a `'` to protect against csv injection attacks
+   * Boolean, default to false. If true, fields that begin with `=`, `+`, `-`,
+   * `@`, `\t` or `\r`, as well as their full-width unicode forms `＝`, `＋`,
+   * `－` and `＠`, are prepended with a `'` to protect against CSV injection
+   * attacks: spreadsheet applications display the value as text instead of
+   * executing it as a formula.
+   *
+   * The written format is unambiguous: any value made of zero or more `'`
+   * followed by one of the characters above is prepended with one additional
+   * `'`. For example, `=1` is written as `'=1` while `'=1` is written as
+   * `''=1`. The `unescape_formulas` option of csv-parse restores the original
+   * value by removing exactly one leading `'` from fields made of one or more
+   * `'` followed by one of the characters above.
    */
   escape_formulas?: boolean;
 }

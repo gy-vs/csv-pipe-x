@@ -11,6 +11,43 @@ const isRecordEmpty = function (record) {
   );
 };
 
+// Characters which spreadsheet applications interpret as the start of a
+// formula when leading a value: `=`, `+`, `-`, `@`, tabulation and carriage
+// return, as well as their full-width unicode forms normalized by Apple
+// Numbers. It mirrors the `escape_formulas` option of csv-stringify.
+const is_formula_char = function (chr) {
+  switch (chr) {
+    case "=":
+    case "+":
+    case "-":
+    case "@":
+    case "\t":
+    case "\r":
+    case "\uFF1D": // Unicode '='
+    case "\uFF0B": // Unicode '+'
+    case "\uFF0D": // Unicode '-'
+    case "\uFF20": // Unicode '@'
+      return true;
+    default:
+      return false;
+  }
+};
+
+// Inverse of the `escape_formulas` option of csv-stringify: a field made of
+// one or more quotes followed by a formula character is an escaped value and
+// its leading quote is removed; every other field is returned unchanged.
+// Removing exactly one quote is enough because the stringifier prepends
+// exactly one quote to any value made of zero or more quotes followed by a
+// formula character, making the two options the inverse of each other.
+const unescape_formula = function (field) {
+  let i = 0;
+  while (field[i] === "'") i++;
+  if (i !== 0 && is_formula_char(field[i])) {
+    return field.slice(1);
+  }
+  return field;
+};
+
 const cr = 13; // `\r`, carriage return, 0x0D in hexadécimal, 13 in decimal
 const nl = 10; // `\n`, newline, 0x0A in hexadecimal, 10 in decimal
 
@@ -710,7 +747,8 @@ const transform = function (original_options = {}) {
       this.state.record_length = 0;
     },
     __onField: function () {
-      const { cast, encoding, rtrim, max_record_size } = this.options;
+      const { cast, encoding, rtrim, max_record_size, unescape_formulas } =
+        this.options;
       const { enabled, wasQuoting } = this.state;
       // Short circuit for the from_line options
       if (enabled === false) {
@@ -719,6 +757,11 @@ const transform = function (original_options = {}) {
       let field = this.state.field.toString(encoding);
       if (rtrim === true && wasQuoting === false) {
         field = field.trimRight();
+      }
+      // Unescape before casting so that `cast` receives the original value;
+      // with `encoding` null, the field is a buffer and is left untouched
+      if (unescape_formulas === true && typeof field === "string") {
+        field = unescape_formula(field);
       }
       if (cast === true) {
         const [err, f] = this.__cast(field);

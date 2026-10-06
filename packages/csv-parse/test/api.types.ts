@@ -65,6 +65,7 @@ describe("API Types", function () {
           "to",
           "to_line",
           "trim",
+          "unescape_formulas",
         ]);
     });
 
@@ -379,6 +380,11 @@ describe("API Types", function () {
     it("trim", function () {
       const options: Options = {};
       options.trim = true;
+    });
+
+    it("unescape_formulas", function () {
+      const options: Options = {};
+      options.unescape_formulas = true;
     });
   });
 
